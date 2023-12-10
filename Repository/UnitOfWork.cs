@@ -1,5 +1,6 @@
 ﻿using Core.Domain;
 using Core.Repository;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,23 +13,42 @@ namespace Repository
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public IBaseRepository<Doctor> Doctors { get; private set; }
-        public IBaseRepository<ApplicationUser> Patients { get; private set; }
-        public IBaseRepository<DiscountCodeCoupon> DiscountCodeCoupons { get; private set; }
-        public IBaseRepository<Appointment> Appointments { get; private set; }
-        public IBaseRepository<Booking> Requests { get; private set; }
+        public IDoctorRepository Doctors { get; private set; }
+        public IApplicationUserRepository ApplicationUser { get; private set; }
+        public IDiscountCodeCouponRepository DiscountCodeCoupons { get; private set; }
+        public IAppointmentRepository Appointments { get; private set; }
+        public IAppointmentTimeRepository AppointmentTimes { get; private set; }
+        public IBookingsRepository Bookings { get; private set; }
         public ISpecializationRepository Specializations { get; private set; }
-        public UnitOfWork(ApplicationDbContext context) {
-            _context = context;
+        public IPatientRepository Patients { get; private set; }
 
-            Doctors = new BaseRepository<Doctor>(_context);
-            Patients = new BaseRepository<ApplicationUser>(_context);
-            DiscountCodeCoupons = new BaseRepository<DiscountCodeCoupon>(_context);
-            Appointments = new BaseRepository<Appointment>(_context);
-            Requests = new BaseRepository<Booking>(_context);
+        public UnitOfWork(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager, SignInManager<ApplicationUser> signInManager) {
+            
+            #region initializations
+            _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _signInManager = signInManager;
+            #endregion
+
+            #region DI
+            Doctors = new DoctorRepository(_context, userManager);
+            ApplicationUser = new ApplicationUserRepository(_context, _userManager,
+                _roleManager, _signInManager);
+
+            DiscountCodeCoupons = new DiscountCodeCouponRepository(_context);
+            Appointments = new AppointmentRepository(_context);
+            Bookings = new BookingsRepository(_context);
             Specializations = new SpecializationRepository(_context);
+            AppointmentTimes = new AppointmentTimeRepository(_context);  
+            Patients = new PatientRepository(_context,_userManager, _roleManager, _signInManager);
+            #endregion
         }
         public int Complete()
         {

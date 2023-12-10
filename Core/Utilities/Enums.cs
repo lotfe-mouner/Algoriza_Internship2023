@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Core.Utilities
 {
-    public enum Days
+    public enum DayOfWeek
     {
         Saturday,
         Sunday,
@@ -17,7 +17,7 @@ namespace Core.Utilities
         Friday
     }
 
-    public enum RequestState
+    public enum BookingState
     {
         Pending,
         Completed,
@@ -34,5 +34,12 @@ namespace Core.Utilities
     {
         Percentage,
         Value
+    }
+
+    public enum UserRole
+    {
+        Patient,
+        Admin,
+        Doctor
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Core.Repository;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,24 +16,26 @@ namespace Repository
         public BaseRepository(ApplicationDbContext context) {
             _context = context;
         }
-        public async Task<T> AddAsync(T entity)
+
+        public virtual async Task<IActionResult> Add(T entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _context.Set<T>().Add(entity);
+                return new OkObjectResult(entity);
+            }
+            catch (Exception ex)
+            {
+                return new ObjectResult($"An error occurred while adding: {ex.Message}")
+                {
+                    StatusCode = 500
+                };
+            }
         }
 
-        public async Task DeleteAsync(int id)
+        public T GetById(int id)
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task<IEnumerable<T>> GetAllAsync(int Page, int PageSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<T> UpdateAsync(T entity)
-        {
-            throw new NotImplementedException();
+            return _context.Set<T>().Find(id);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Repository.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.13")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -43,6 +43,10 @@ namespace Repository.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
@@ -85,6 +89,10 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -94,6 +102,28 @@ namespace Repository.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "c19937ea-edbe-4ce5-90a2-8e48ada52a60",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "030cb112-8710-4a56-940b-0d087ddd85b8",
+                            DateOfBirth = new DateTime(2001, 5, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "admin@gmail.com",
+                            EmailConfirmed = false,
+                            FullName = "Admin Admin",
+                            Gender = 1,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@GMAIL.COM",
+                            NormalizedUserName = "c19937ea-edbe-4ce5-90a2-8e48ada52a60",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAbTVwWtzUrW7kOd8duy/nV1TTDonwx1nXDcSINXLG7YAY1Xmu5WcohX0RrSFDiMfQ==",
+                            PhoneNumber = "123456",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "8ff32591-ef68-4316-b31b-ab6aeda737e1",
+                            TwoFactorEnabled = false,
+                            UserName = "c19937ea-edbe-4ce5-90a2-8e48ada52a60"
+                        });
                 });
 
             modelBuilder.Entity("Core.Domain.Appointment", b =>
@@ -107,7 +137,7 @@ namespace Repository.Migrations
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("int");
 
-                    b.Property<int>("DoctorId")
+                    b.Property<int?>("DoctorId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -128,14 +158,50 @@ namespace Repository.Migrations
                     b.Property<int>("AppointmentId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime2");
+                    b.Property<TimeSpan>("Time")
+                        .HasColumnType("time");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentId");
 
                     b.ToTable("AppointmentTimes", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Domain.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentTimeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookingState")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountCodeCouponId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentTimeId");
+
+                    b.HasIndex("DiscountCodeCouponId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("Core.Domain.DiscountCodeCoupon", b =>
@@ -152,10 +218,22 @@ namespace Repository.Migrations
                     b.Property<bool>("IsActivated")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Value")
+                    b.Property<int?>("MinimumRequiredBookings")
+                        .IsRequired()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("Value")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("DiscountCodeCoupons", (string)null);
                 });
@@ -172,8 +250,10 @@ namespace Repository.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("Price")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<int>("SpecializationId")
                         .HasColumnType("int");
@@ -185,46 +265,6 @@ namespace Repository.Migrations
                     b.HasIndex("SpecializationId");
 
                     b.ToTable("Doctors", (string)null);
-                });
-
-            modelBuilder.Entity("Core.Domain.Request", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AppointmentTimeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DiscountCodeCouponId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DoctorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PatientId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PatientId1")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("RequestState")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppointmentTimeId");
-
-                    b.HasIndex("DiscountCodeCouponId");
-
-                    b.HasIndex("DoctorId");
-
-                    b.HasIndex("PatientId1");
-
-                    b.ToTable("Requests", (string)null);
                 });
 
             modelBuilder.Entity("Core.Domain.Specialization", b =>
@@ -349,6 +389,29 @@ namespace Repository.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "b2553eda-413b-4e99-a7fc-a3ca40222cc0",
+                            ConcurrencyStamp = "fdd82728-7e31-4772-b001-5c69e3715f96",
+                            Name = "Patient",
+                            NormalizedName = "PATIENT"
+                        },
+                        new
+                        {
+                            Id = "cef07a16-e4a5-453e-bc81-0d195fedd872",
+                            ConcurrencyStamp = "8669de0a-0fb4-47eb-a33c-effd0b40e9b2",
+                            Name = "Doctor",
+                            NormalizedName = "Doctor"
+                        },
+                        new
+                        {
+                            Id = "09066f40-d9df-493a-91be-b82e71f8353a",
+                            ConcurrencyStamp = "603c920e-82a9-4063-b01a-5838bc05e585",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -436,6 +499,13 @@ namespace Repository.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "c19937ea-edbe-4ce5-90a2-8e48ada52a60",
+                            RoleId = "09066f40-d9df-493a-91be-b82e71f8353a"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -460,10 +530,8 @@ namespace Repository.Migrations
             modelBuilder.Entity("Core.Domain.Appointment", b =>
                 {
                     b.HasOne("Core.Domain.Doctor", "Doctor")
-                        .WithMany("Appointments")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("DoctorId");
 
                     b.Navigation("Doctor");
                 });
@@ -471,12 +539,39 @@ namespace Repository.Migrations
             modelBuilder.Entity("Core.Domain.AppointmentTime", b =>
                 {
                     b.HasOne("Core.Domain.Appointment", "Appointment")
-                        .WithMany("AppointmentsTimes")
+                        .WithMany("AppointmentTimes")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("Core.Domain.Booking", b =>
+                {
+                    b.HasOne("Core.Domain.AppointmentTime", null)
+                        .WithMany()
+                        .HasForeignKey("AppointmentTimeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Bookings_AppointmentTimes_AppointmentTimeId");
+
+                    b.HasOne("Core.Domain.DiscountCodeCoupon", null)
+                        .WithMany()
+                        .HasForeignKey("DiscountCodeCouponId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Bookings_DiscountCodeCoupons_DiscountCodeCouponId");
+
+                    b.HasOne("Core.Domain.Doctor", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Bookings_Doctors_DoctorId");
+
+                    b.HasOne("Core.Domain.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Bookings_AspNetUsers_PatientId");
                 });
 
             modelBuilder.Entity("Core.Domain.Doctor", b =>
@@ -488,7 +583,7 @@ namespace Repository.Migrations
                         .IsRequired();
 
                     b.HasOne("Core.Domain.Specialization", "Specialization")
-                        .WithMany("Doctors")
+                        .WithMany()
                         .HasForeignKey("SpecializationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -496,39 +591,6 @@ namespace Repository.Migrations
                     b.Navigation("DoctorUser");
 
                     b.Navigation("Specialization");
-                });
-
-            modelBuilder.Entity("Core.Domain.Request", b =>
-                {
-                    b.HasOne("Core.Domain.AppointmentTime", "AppointmentTime")
-                        .WithMany()
-                        .HasForeignKey("AppointmentTimeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Core.Domain.DiscountCodeCoupon", "DiscountCodeCoupon")
-                        .WithMany("Requests")
-                        .HasForeignKey("DiscountCodeCouponId");
-
-                    b.HasOne("Core.Domain.Doctor", "Doctor")
-                        .WithMany("Requests")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Core.Domain.ApplicationUser", "Patient")
-                        .WithMany("Requests")
-                        .HasForeignKey("PatientId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AppointmentTime");
-
-                    b.Navigation("DiscountCodeCoupon");
-
-                    b.Navigation("Doctor");
-
-                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -582,31 +644,9 @@ namespace Repository.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Core.Domain.ApplicationUser", b =>
-                {
-                    b.Navigation("Requests");
-                });
-
             modelBuilder.Entity("Core.Domain.Appointment", b =>
                 {
-                    b.Navigation("AppointmentsTimes");
-                });
-
-            modelBuilder.Entity("Core.Domain.DiscountCodeCoupon", b =>
-                {
-                    b.Navigation("Requests");
-                });
-
-            modelBuilder.Entity("Core.Domain.Doctor", b =>
-                {
-                    b.Navigation("Appointments");
-
-                    b.Navigation("Requests");
-                });
-
-            modelBuilder.Entity("Core.Domain.Specialization", b =>
-                {
-                    b.Navigation("Doctors");
+                    b.Navigation("AppointmentTimes");
                 });
 #pragma warning restore 612, 618
         }

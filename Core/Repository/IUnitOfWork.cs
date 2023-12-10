@@ -9,12 +9,14 @@ namespace Core.Repository
 {
     public interface IUnitOfWork : IDisposable
     {
-        public IBaseRepository<Doctor> Doctors { get; }
-        public IBaseRepository<ApplicationUser> Patients { get; }
-        public IBaseRepository<DiscountCodeCoupon> DiscountCodeCoupons { get; }
-        public IBaseRepository<Appointment> Appointments { get; }
-        public IBaseRepository<Booking> Requests { get; }
+        public IDoctorRepository Doctors { get; }
+        public IApplicationUserRepository ApplicationUser { get; }
+        public IDiscountCodeCouponRepository DiscountCodeCoupons { get; }
+        public IAppointmentTimeRepository AppointmentTimes { get; }
+        public IAppointmentRepository Appointments { get; }
+        public IBookingsRepository Bookings { get; }
         public ISpecializationRepository Specializations { get; }
+        public IPatientRepository Patients { get; }
         int Complete();
     }
 }
